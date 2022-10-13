@@ -1,9 +1,9 @@
 import styles from "./select.module.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type SelectOptions = {
   label: string;
-  value: any;
+  value: string | number;
 };
 
 type SelectProps = {
@@ -14,10 +14,23 @@ type SelectProps = {
 
 export function Select({ value, onChange, options }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
 
   function clearOptions() {
     onChange(undefined);
   }
+
+  function selectOption(option: SelectOption) {
+    if (option !== value) onChange(option);
+  }
+
+  function isOptionSelected(option: SelectOption) {
+    return option === value;
+  }
+
+  useEffect(() => {
+    if (isOpen) setHighlightedIndex(0);
+  }, [isOpen]);
 
   return (
     <div
@@ -39,8 +52,20 @@ export function Select({ value, onChange, options }: SelectProps) {
       <div className={styles.divider}></div>
       <div className={styles.caret}></div>
       <ul className={`${styles.options} ${isOpen ? styles.show : ""}`}>
-        {options.map((option) => (
-          <li key={option.label} className={styles.option}>
+        {options.map((option, index) => (
+          <li
+            onClick={(e) => {
+              e.stopPropagation();
+              selectOption(option);
+              setIsOpen(false);
+            }}
+            onMouseEnter={() => setHighlightedIndex(index)}
+            key={option.value}
+            className={`${styles.option} ${
+              isOptionSelected(option) ? styles.selected : ""
+            }
+            ${index === highlightedIndex ? styles.highlighted : ""}`}
+          >
             {option.label}
           </li>
         ))}
